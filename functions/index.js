@@ -4,7 +4,7 @@ const app = require('express')();
 //const serviceAccount = require("../admin.json");
 
 admin.initializeApp({
-    credential: admin.credential.cert(require('C:\\Users\\Тарас\\Desktop\\cyberteam-functions\\functions\\admin.json'))
+    credential: admin.credential.cert(require('C:\\Users\\Professional\\WebstormProjects\\cyberteam\\functions\\admin.json'))
    // databaseURL: "https://cyberrr-8219c.firebaseio.com",
 });
 const config = {
@@ -68,10 +68,11 @@ app.post('/scream',(req , res) => {
 
 });
 
-const isEmpty = (string) => {
+/*const isEmpty = (string) => {
     if(string.trim() === '') return true;
     else return false;
 }
+ */
 
 //signUp route
 app.post('/signup', (req,res) => {
@@ -144,16 +145,16 @@ app.post('/signup', (req,res) => {
                 return res.status(400).json({email: `Email is already in use`})
             } else {
                 return res.status(500).json({error:err.code});
-            }
-        });
-});
-firebase
-    .auth()
+            } .auth()
     .createUserWithEmailAndPassword(newUser.email, newUser.password)
 .then((data) => {
     return res.status(201).json({message: `user ${data.user.uid} sighed up successfully`});
 })
     .catch((err) => {
+        });
+});
+firebase
+
         console.err(err);
         return res.status(500).json ({error: err.code});
     });*/
