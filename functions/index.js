@@ -68,11 +68,11 @@ app.post('/scream',(req , res) => {
 
 });
 
-/*const isEmpty = (string) => {
+const isEmpty = (string) => {
     if(string.trim() === '') return true;
     else return false;
 }
- */
+
 
 //signUp route
 app.post('/signup', (req,res) => {
