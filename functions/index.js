@@ -3,10 +3,11 @@ const admin = require("firebase-admin");
 const app = require('express')();
 //const serviceAccount = require("../admin.json");
 
-admin.initializeApp()/*{
-    credential: admin.credential.cert(require('C:\\Users\\Тарас\\Desktop\\cyberteam\\functions\\admin.json'))
+//C:\Users\Тарас\Desktop\cyberteam-functions\functions\admin.json
+admin.initializeApp({
+    credential: admin.credential.cert(require('C:\\Users\\Тарас\\Desktop\\cyberteam-functions\\functions\\admin.json'))
    // databaseURL: "https://cyberrr-8219c.firebaseio.com",
-});*/
+});
 const config = {
     apiKey: "AIzaSyDNzPoNyKsSxtaU0frqzVlsfKu1sAH55y4",
     authDomain: "cyberrr-8219c.firebaseapp.com",
@@ -88,6 +89,7 @@ app.post('/scream',(req , res) => {
             handle: req.body.handle,
         };
 
+
         let errors = {};
 
         if (isEmpty(newUser.email)) {
@@ -129,9 +131,11 @@ app.post('/scream',(req , res) => {
                 };
                 db.doc(`/users/${newUser.handle}`).set(userCredentials);
             })
+
             .then(() => {
                 return res.status(201).json({token});
             })
+
             .catch(err => {
                 console.error(err);
                 if (err.code === `auth/email-already-in-use`) {
@@ -140,6 +144,7 @@ app.post('/scream',(req , res) => {
                     return res.status(500).json({error: err.code});
                 }
             });
+
     });
     /*           token = token;
                const userCredentials = {
