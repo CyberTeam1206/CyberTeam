@@ -1,6 +1,7 @@
 const {admin, db} = require("../Utility/admin");
 
 const config = require("../Utility/config");
+// const { uuid } = require("uuidv4");
 
 
 const firebase = require("firebase");
@@ -93,8 +94,6 @@ exports.login = (req, res) => {
         })
         .catch((err) => {
             console.error(err);
-            // auth/wrong-password
-            // auth/user-not-user
             return res
                 .status(403)
                 .json({ general: "Wrong credentials, please try again" });
@@ -114,6 +113,45 @@ exports.addUserDetails = (req, res) => {
             return res.status(500).json({error: err.code});
         });
 };
+
+// Get any user's details
+exports.getUserDetails = (req, res) => {
+    let userData = {};
+    db.doc(`/users/${req.params.handle}`)
+        .get()
+        .then((doc) => {
+            if (doc.exists) {
+                userData.user = doc.data();
+                return db
+                    .collection("screams")
+                    .where("userHandle", "==", req.params.handle)
+                    .orderBy("createdAt", "desc")
+                    .get();
+            } else {
+                return res.status(404).json({ error: "User not found" });
+            }
+        })
+        .then((data) => {
+            userData.screams = [];
+            data.forEach((doc) => {
+                userData.screams.push({
+                    body: doc.data().body,
+                    createdAt: doc.data().createdAt,
+                    userHandle: doc.data().userHandle,
+                    userImage: doc.data().userImage,
+                    likeCount: doc.data().likeCount,
+                    commentCount: doc.data().commentCount,
+                    screamId: doc.id,
+                });
+            });
+            return res.json(userData);
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({ error: err.code });
+        });
+};
+
 //get own user details
 
 exports.getAuthenticatedUser = (req, res) => {
@@ -132,6 +170,26 @@ exports.getAuthenticatedUser = (req, res) => {
             userData.likes = [];
             data.forEach((doc) =>{
                 userData.likes.push(doc.data());
+            });
+            return db
+                .collection("notifications")
+                .where("recipient", "==", req.user.handle)
+                .orderBy("createdAt", "desc")
+                .limit(10)
+                .get();
+        })
+        .then((data) => {
+            userData.notifications = [];
+            data.forEach((doc) => {
+                userData.notifications.push({
+                    recipient: doc.data().recipient,
+                    sender: doc.data().sender,
+                    createdAt: doc.data().createdAt,
+                    screamId: doc.data().screamId,
+                    type: doc.data().type,
+                    read: doc.data().read,
+                    notificationId: doc.id,
+                });
             });
             return res.json(userData);
         })
@@ -152,8 +210,10 @@ exports.uploadImage = (req,res) => {
 
  let imageFileName;
  let imageToBeUploaded = {};
+ let generatedToken = uuid();
 
  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+     console.log(fieldname, file, filename, encoding, mimetype);
      if(mimetype !== 'image/jpeg' && mimetype !== 'image/png'){
          return res.status(400).json({error: 'Wrong file type submitted'});
      }
@@ -165,13 +225,17 @@ exports.uploadImage = (req,res) => {
      file.pipe(fs.createWriteStream(filepath));
  });
  busboy.on('finish', () => {
-     admin.storage().bucket().upload(imageToBeUploaded.filepath, {
+     admin
+         .storage()
+         .bucket()
+         .upload(imageToBeUploaded.filepath, {
          resumable: false,
          metadata: {
              metadata: {
-                 contentType: imageToBeUploaded.mimetype
-             }
-         }
+                 contentType: imageToBeUploaded.mimetype,
+                 firebaseStorageDownloadTokens: generatedToken,
+             },
+        },
 
      })
          .then(() => {
@@ -190,3 +254,19 @@ exports.uploadImage = (req,res) => {
  busboy.end(req.rawBody);
 };
 
+exports.markNotificationsRead = (req, res) => {
+    let batch = db.batch();
+    req.body.forEach((notificationId) => {
+        const notification = db.doc(`/notifications/${notificationId}`);
+        batch.update(notification, { read: true });
+    });
+    batch
+        .commit()
+        .then(() => {
+            return res.json({ message: "Notifications marked read" });
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({ error: err.code });
+        });
+};
