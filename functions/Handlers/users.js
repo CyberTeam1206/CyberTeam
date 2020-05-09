@@ -178,7 +178,7 @@ exports.getAuthenticatedUser = (req, res) => {
                 .limit(10)
                 .get();
         })
-        .then((data) => {
+        .then(data => {
             userData.notifications = [];
             data.forEach((doc) => {
                 userData.notifications.push({
