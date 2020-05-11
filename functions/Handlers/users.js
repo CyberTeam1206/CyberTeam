@@ -1,7 +1,7 @@
 const {admin, db} = require("../Utility/admin");
 
 const config = require("../Utility/config");
-// const { uuid } = require("uuidv4");
+ //const { uuid } = require("uuidv4");
 
 
 const firebase = require("firebase");
@@ -66,7 +66,7 @@ const noImg =  'noimg.jpg';
             if (err.code === `auth/email-already-in-use`) {
                 return res.status(400).json({email: `Email is already in use`})
             } else {
-                return res.status(500).json({general: "Something went wrong? pry try again"});
+                return res.status(500).json({general: "Something went wrong? please try again"});
             }
         });
 

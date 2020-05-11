@@ -2,8 +2,17 @@ const functions = require('firebase-functions');
 const app = require('express')();
 const FBAuth = require('./Utility/fbAuth');
 
+
+
 const cors = require('cors');
 app.use(cors());
+
+app.use(function(req,res, next){
+    res.header("Access-Control-Allow_Origin","*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type,Accept");
+    next();
+});
+
 
 const { db } = require('./Utility/admin');
 
@@ -11,7 +20,6 @@ const { getAllScreams, postOneScream, getScream, commentOnScream,likeScream, unl
     = require('./Handlers/screams');
 
 const { signup, login, uploadImage,addUserDetails, getAuthenticatedUser,  getUserDetails, markNotificationsRead} = require('./Handlers/users');
-
 
 //Scream routes
 app.get('/screams', getAllScreams);
@@ -125,7 +133,7 @@ exports.onUserImageChange = functions
 
 exports.onScreamDelete = functions
     .region('europe-west1')
-    .firestore.document('/screams/{screamId}')
+    .firestore.document(`/screams/{screamId}`)
     .onDelete((snapshot, context) => {
         const screamId = context.params.screamId;
         const batch = db.batch();
